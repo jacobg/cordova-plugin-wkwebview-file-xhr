@@ -667,17 +667,15 @@
   {
     var isTimeout = (HttpHandler._UNDERLYING_ERROR_CODES.NSURLErrorTimedOut === underlyingErrorCode);
 
-    if (isTimeout)
-    {
-      reqContext.status = 0;
-      reqContext.statusText = reqContext.responseText = null;
-    }
-    else
-    {
-      reqContext.status = 400;
-      reqContext.statusText = "Bad Request";
-      reqContext.responseText = error;
-    }
+    // Set status to -1 instead of the more common 0, because incidentally Ext JS interprets
+    // status 0 with a non-empty responseText string as a successful response. It does that,
+    // because it thinks it might have been a file:// response. So we'll use -1 instead,
+    // because we want the caller to be able to access the error message, and there's
+    // really no other property but responseText for that. An alternative would be to
+    // rely on an 'error' event, but Ext JS doesn't do that.
+    reqContext.status = -1;
+    reqContext.statusText = null;
+    reqContext.responseText = error;
 
     reqContext.dispatchReadyStateChangeEvent(2); //HEADERS_RECIEVED
     reqContext.dispatchReadyStateChangeEvent(3); //LOADING
